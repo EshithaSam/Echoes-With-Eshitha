@@ -213,12 +213,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px soli
       <p class="note">Individual counselling · Couple counselling · Employee wellbeing</p>
       <div class="session-formats" aria-label="Session formats"><span>Online sessions</span><span>Offline sessions</span></div>
     </div>
-    <div class="hero-art" aria-label="Photo of Eshitha">
-      <div class="sun"></div><div class="blob"></div>
-      <div class="portrait-wrap">
-        <img src="eshitha-photo.jpg" alt="Eshitha, counsellor at Echoes with Eshitha"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='grid';">
-        <div class="portrait-placeholder" style="display:none">Your photo goes here<br><small style="font: .85rem Arial, sans-serif">Add your portrait as <strong>eshitha-photo.jpg</strong></small></div>
+    <div class="hero-art">
+      <div class="sun" aria-hidden="true"></div><div class="blob" aria-hidden="true"></div>
+      <div class="art-card">
+        <h2>Echoes with Eshitha</h2>
+        <p>A safe space for understanding, reflecting, and making room for what matters most.</p>
       </div>
       <div class="doodle" aria-hidden="true">✳</div>
     </div>
@@ -346,7 +345,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px soli
         <form id="contact-form" action="https://formsubmit.co/echoeswitheshitha@gmail.com" method="POST" data-ajax="https://formsubmit.co/ajax/echoeswitheshitha@gmail.com">
           <input type="hidden" name="_subject" value="New website enquiry — Echoes with Eshitha">
           <input type="hidden" name="_template" value="table">
-          <input type="hidden" name="_captcha" value="false">
           <div hidden><label for="_honey">Leave this field empty</label><input id="_honey" type="text" name="_honey" tabindex="-1" autocomplete="off"></div>
           <div><label for="name">Your name</label><input id="name" name="name" required autocomplete="name" placeholder="How should I address you?"></div>
           <div><label for="email">Email address</label><input id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"></div>
@@ -387,11 +385,21 @@ form.addEventListener('submit',async e=>{
   try{
     const res=await fetch(form.dataset.ajax,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(form).entries()))});
     const data=await res.json().catch(()=>({}));
-    if(!res.ok||!(data.success===true||data.success==='true'))throw new Error(data.message||'Request failed');
+    if(!res.ok||!(data.success===true||data.success==='true'))throw new Error(data.message||('Request failed ('+res.status+')'));
     document.getElementById('success-name').textContent=form.elements['name'].value.trim();
     form.reset();form.hidden=true;successEl.hidden=false;
   }catch(err){
-    statusEl.innerHTML='Sorry, that didn\u2019t send. Please try again, or email <a href="mailto:echoeswitheshitha@gmail.com">echoeswitheshitha@gmail.com</a> directly.';
+    console.error('Enquiry form error:',err);
+    const f=form.elements;
+    const mail='mailto:echoeswitheshitha@gmail.com?subject='+encodeURIComponent('Website enquiry')+'&body='+encodeURIComponent('Name: '+f['name'].value+'\nEmail: '+f['email'].value+'\nEnquiring about: '+f['service'].value+'\n\n'+f['message'].value);
+    statusEl.textContent='';
+    if(/activat/i.test(String(err.message))){
+      statusEl.append('This form is waiting for its one-time activation. Please email ');
+    }else{
+      statusEl.append('Sorry, that didn\u2019t send. Please try again, or email ');
+    }
+    const a=document.createElement('a');a.href=mail;a.textContent='echoeswitheshitha@gmail.com';
+    statusEl.append(a,' directly.');
     statusEl.hidden=false;
   }finally{btn.disabled=false;btn.textContent=label;}
 });
